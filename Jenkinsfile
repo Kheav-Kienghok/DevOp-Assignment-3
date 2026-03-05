@@ -26,10 +26,18 @@ pipeline {
 
         stage('Deploy Container') {
             steps {
-                // Stop/remove previous container if exists
                 sh '''
+                # Kill any process using port 3000
+                if lsof -i :3000 -t >/dev/null; then
+                    echo "Port 3000 is in use, killing process..."
+                    sudo fuser -k 3000/tcp
+                fi
+        
+                # Stop/remove previous container
                 docker stop foodexpress-container || true
                 docker rm foodexpress-container || true
+        
+                # Run new container
                 docker run -d -p 3000:3000 --name foodexpress-container foodexpress-api
                 '''
             }
